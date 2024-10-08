@@ -24,7 +24,7 @@ public class CarteUI : MonoBehaviour
 
         
 
-        iTween.MoveTo(transform.GetChild(0).gameObject, transform.position + new Vector3(0, Yoffset, 0), 0.1f);
+        //iTween.MoveTo(transform.GetChild(0).gameObject, transform.position + new Vector3(0, Yoffset, 0), 0.1f);
     }
 
     private void OnMouseDown()

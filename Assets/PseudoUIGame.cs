@@ -55,8 +55,13 @@ public class PseudoUIGame : MonoBehaviour
         foreach (var player in manager.PlayerListInOrder)
         {
             string pseudo = "Player";
-            if(StatGame.instance.PlayersPseudo.TryGetValue(player.photonView.ViewID, out pseudo)) { }
-
+            if(StatGame.instance.PlayersPseudo.TryGetValue(player.photonView.ViewID, out pseudo)) { 
+                
+            }
+            if (pseudo == null)
+            {
+                pseudo = "Player" + StatGame.instance.Playersorder[player.photonView.ViewID];
+            }
             transform.GetChild((StatGame.instance.Playersorder[player.photonView.ViewID] + GameObject.FindObjectOfType<LocalPlayerUI>().LocalPlayer.Numéro  + transform.childCount - 1) % transform.childCount).transform.GetComponent<TextMeshProUGUI>().text = pseudo;
 
         }

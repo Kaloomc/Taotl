@@ -20,19 +20,22 @@ public class LocalPlayerUI : MonoBehaviour
     Manager manager;
     public bool myTurn;
 
-    private void Start()
+    
+
+    public void StartGame()
     {
         manager = GameObject.FindObjectOfType<Manager>();
-    }
-    private void FixedUpdate()
-    {
-        if (LocalPlayer == null)
-        {
-            LocalPlayer = GetLocalPlayer();
-            return;
-        }
-
+        LocalPlayer = GetLocalPlayer();
         instantiateCard();
+    }
+
+
+
+    private void Update()
+    {
+        
+
+        
         MyTurn();
 
     }
@@ -44,7 +47,8 @@ public class LocalPlayerUI : MonoBehaviour
 
     public void MyTurn()
     {
-        
+        if(manager == null)
+            return;
 
         if(manager.currentPlayer % manager.PlayerCount == LocalPlayer.Numéro)
         {
@@ -62,27 +66,24 @@ public class LocalPlayerUI : MonoBehaviour
     public void instantiateCard()
     {
         CarteOffsetMain = 1.5f - 0.035f * LocalPlayer.Carte.Count;
-
-
-        if (transform.childCount != LocalPlayer.Carte.Count)
+        for (int i = 0; i < LocalPlayer.Carte.Count; i++)
         {
-            if (transform.childCount < LocalPlayer.Carte.Count)
-            {
-                GameObject temp = Instantiate(CartePrefab, transform);
-                temp.transform.position = new Vector2(0, -10f);
-            }
+            GameObject temp = Instantiate(CartePrefab, transform);
+            temp.transform.position = new Vector2(0, -10f);
         }
+        ArrangeCard(); 
+    }
 
-        //ajouter ou suppr les cartes
-        if (LocalPlayer.Carte.Count == 0)
-            return;
-        //Aligner les cartes
-        float TailleMain = (LocalPlayer.Carte.Count - 1) * CarteOffsetMain;
+    public void ArrangeCard()
+    {
+        float TailleMain = (transform.childCount - 1) * CarteOffsetMain;
         for (int i = 0; i < transform.childCount; i++)
         {
-            iTween.MoveTo(transform.GetChild(i).gameObject, new Vector3((-TailleMain / 2) + CarteOffsetMain * i, transform.position.y, -0.1f * i), .3f);
+
+            iTween.MoveTo(transform.GetChild(i).gameObject, new Vector3((-TailleMain / 2) + CarteOffsetMain * i, transform.position.y, -0.1f * i), .7f);
         }
     }
+
 
 
     public Player GetLocalPlayer()
@@ -122,6 +123,7 @@ public class LocalPlayerUI : MonoBehaviour
         int index = LocalPlayer.Carte.IndexOf(Textures.IndexOf(carte));
         LocalPlayer.Play(Textures.IndexOf(carte));
         Destroy(transform.GetChild(index).gameObject);
-        
+        if(LocalPlayer.Carte.Count > 0)
+            ArrangeCard();
     }
 }

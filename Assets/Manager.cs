@@ -36,6 +36,11 @@ public class Manager : MonoBehaviourPunCallbacks
     {
         PlayerCount = StatGame.instance.PlayerCount;
         Players = GameObject.FindGameObjectsWithTag("Player");
+        if (Players.Length != PlayerCount)
+        {
+            initatialize();
+            return;
+        }
         foreach (var player in Players)
         {
             player.GetComponent<Player>().SetOrder();
@@ -44,6 +49,7 @@ public class Manager : MonoBehaviourPunCallbacks
         PlayerListInOrder = PlayerListInOrder.OrderByDescending(player => player.Numéro).ToList();
 
         Couleur = -1;
+        
 
         if (!PhotonNetwork.IsMasterClient)
         {
@@ -52,7 +58,6 @@ public class Manager : MonoBehaviourPunCallbacks
         }
         firstPlayer = Random.Range(0, PlayerCount);
         NewTurn();
-       
         
         
     }
@@ -77,7 +82,7 @@ public class Manager : MonoBehaviourPunCallbacks
         firstPlayer++;
         currentPlayer = firstPlayer % PlayerCount;
         Plis = Tour * 2;
-        photonView.RPC("SetCurrentPlayer", RpcTarget.OthersBuffered, currentPlayer,Plis,Tour);
+        photonView.RPC("SetCurrentPlayer", RpcTarget.AllBuffered, currentPlayer,Plis,Tour);
     }
 
     private void Update()
@@ -176,6 +181,7 @@ public class Manager : MonoBehaviourPunCallbacks
         currentPlayer = c;
         Plis = p;
         Tour = t;
+        GameObject.FindObjectOfType<LocalPlayerUI>().StartGame();
     }
 
 
