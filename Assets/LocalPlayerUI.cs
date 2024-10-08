@@ -80,7 +80,7 @@ public class LocalPlayerUI : MonoBehaviour
         float TailleMain = (LocalPlayer.Carte.Count - 1) * CarteOffsetMain;
         for (int i = 0; i < transform.childCount; i++)
         {
-            iTween.MoveTo(transform.GetChild(i).gameObject, new Vector3((-TailleMain / 2) + CarteOffsetMain * i, transform.position.y, -0.01f * i), .3f);
+            iTween.MoveTo(transform.GetChild(i).gameObject, new Vector3((-TailleMain / 2) + CarteOffsetMain * i, transform.position.y, -0.1f * i), .3f);
         }
     }
 
