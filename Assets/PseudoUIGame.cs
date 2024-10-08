@@ -32,7 +32,7 @@ public class PseudoUIGame : MonoBehaviour
             float y = Mathf.Sin(angle) * radius;
 
             // Créer la position du joueur
-            Vector3 playerPosition = new Vector3(x * 2, y + 50f, 0);
+            Vector3 playerPosition = new Vector3(x * 2, y + 55f, 0);
 
             
             
