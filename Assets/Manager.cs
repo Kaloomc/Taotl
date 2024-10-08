@@ -14,8 +14,8 @@ public class Manager : MonoBehaviourPunCallbacks
     [SerializeField] public GameObject[] Players;
 
     public List<Player> PlayerListInOrder = new List<Player>();
-    
 
+    public PlayedCard cardplayed;
    
 
     [Header("Game")]
@@ -29,11 +29,12 @@ public class Manager : MonoBehaviourPunCallbacks
 
     private void Start()
     {
-        
+        cardplayed = GameObject.FindObjectOfType<PlayedCard>();
         initatialize();
     }
     public void initatialize()
     {
+        
         PlayerCount = StatGame.instance.PlayerCount;
         Players = GameObject.FindGameObjectsWithTag("Player");
         if (Players.Length != PlayerCount)
@@ -120,6 +121,7 @@ public class Manager : MonoBehaviourPunCallbacks
     public void PlayedCard(int player,int card)
     {
         playedCard.Add(player, card);
+        cardplayed.DisplayCard((currentPlayer +PlayerCount)% PlayerCount);
         currentPlayer++;
         GameObject.FindObjectOfType<LocalPlayerUI>().myTurn = false;
         if(playedCard.Count == 1)
@@ -155,7 +157,7 @@ public class Manager : MonoBehaviourPunCallbacks
         currentPlayer = strongest;
         Couleur = -1;
         yield return new WaitForSeconds(.5f);
-        GameObject.FindObjectOfType<PlayedCard>().Plis(strongest);
+        cardplayed.Plis(strongest);
         yield return new WaitForSeconds(1.4f);
         playedCard.Clear();
         Plis--;

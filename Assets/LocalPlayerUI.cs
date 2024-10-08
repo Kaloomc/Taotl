@@ -71,17 +71,24 @@ public class LocalPlayerUI : MonoBehaviour
             GameObject temp = Instantiate(CartePrefab, transform);
             temp.transform.position = new Vector2(0, -10f);
         }
-        ArrangeCard(); 
+        StartCoroutine(ArrangeCard()); 
     }
 
-    public void ArrangeCard()
+    public IEnumerator ArrangeCard()
     {
+
+        yield return new WaitForSeconds(.1f);
+
+        if (transform.childCount == 0)
+            yield break;
         float TailleMain = (transform.childCount - 1) * CarteOffsetMain;
         for (int i = 0; i < transform.childCount; i++)
         {
 
             iTween.MoveTo(transform.GetChild(i).gameObject, new Vector3((-TailleMain / 2) + CarteOffsetMain * i, transform.position.y, -0.1f * i), .7f);
         }
+        print(transform.childCount);
+        print(LocalPlayer.Carte.Count);
     }
 
 
@@ -121,9 +128,10 @@ public class LocalPlayerUI : MonoBehaviour
         if (manager.currentPlayer % manager.PlayerCount  != LocalPlayer.Numéro)
             return;
         int index = LocalPlayer.Carte.IndexOf(Textures.IndexOf(carte));
-        LocalPlayer.Play(Textures.IndexOf(carte));
         Destroy(transform.GetChild(index).gameObject);
-        if(LocalPlayer.Carte.Count > 0)
-            ArrangeCard();
+        LocalPlayer.Play(Textures.IndexOf(carte));
+
+        StartCoroutine(ArrangeCard());
+
     }
 }

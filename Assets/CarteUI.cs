@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class CarteUI : MonoBehaviour
 {
+    [SerializeField] protected Vector3 velocity = Vector3.zero;
 
-    
     public float Yoffset;
     bool selected;
     bool playable;
@@ -20,16 +20,17 @@ public class CarteUI : MonoBehaviour
         playable = Mathf.FloorToInt(GetComponentInParent<LocalPlayerUI>().Textures.IndexOf(GetComponentInChildren<SpriteRenderer>().sprite) / 13) == GameObject.FindObjectOfType<Manager>().Couleur
              || GameObject.FindObjectOfType<Manager>().Couleur == -1;
 
-        Yoffset = !playable ? -0.4f : selected ? 0.4f : 0f;
+        Yoffset = !playable ? -1f : selected ? 1f : 0f;
 
         
-
+        transform.GetChild(0).transform.localPosition = Vector3.SmoothDamp(transform.GetChild(0).transform.localPosition, new Vector3(0,Yoffset,0),ref velocity,.01f);
         //iTween.MoveTo(transform.GetChild(0).gameObject, transform.position + new Vector3(0, Yoffset, 0), 0.1f);
     }
 
     private void OnMouseDown()
     {
         GetComponentInParent<LocalPlayerUI>().Play(GetComponentInChildren<SpriteRenderer>().sprite);
+        
         
     }
 
@@ -43,4 +44,6 @@ public class CarteUI : MonoBehaviour
     {
         selected = false;
     }
+
+    
 }
