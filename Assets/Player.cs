@@ -11,6 +11,9 @@ public class Player : MonoBehaviourPunCallbacks
     public bool Bot;
     public List<int> Carte;
 
+    public int mise;
+    public bool mised;
+
 
     private void Update()
     {

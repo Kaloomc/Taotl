@@ -125,7 +125,7 @@ public class LocalPlayerUI : MonoBehaviour
 
     public void Play(Sprite carte)
     {
-        if (manager.currentPlayer % manager.PlayerCount  != LocalPlayer.Numéro)
+        if (manager.currentPlayer % manager.PlayerCount  != LocalPlayer.Numéro /*|| !LocalPlayer.mised*/)
             return;
         int index = LocalPlayer.Carte.IndexOf(Textures.IndexOf(carte));
         Destroy(transform.GetChild(index).gameObject);

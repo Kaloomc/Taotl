@@ -212,6 +212,8 @@ MonoBehaviour:
   "Num\xE9ro": 0
   Bot: 0
   Carte: 
+  mise: 0
+  mised: 0
 --- !u!1 &8238312823059561098
 GameObject:
   m_ObjectHideFlags: 0
