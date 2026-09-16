@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1053937098e26847a965d9adaadcca7, type: 3}
+  m_Name: 4 Atout
+  m_EditorClassIdentifier: Assembly-CSharp::CardData
+  cardName: 4 Atout
+  cardVisual: {fileID: -5749936784647121643, guid: 3f4c20c1bf37c8c46a7e93437c818d75, type: 3}
+  value: 104
+  suit: Atout
