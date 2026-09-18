@@ -20,7 +20,7 @@ PluginImporter:
         Exclude WebGL: 0
         Exclude Win: 0
         Exclude Win64: 0
-        Exclude iOS: 1
+        Exclude iOS: 0
     Editor:
       enabled: 1
       settings:
@@ -47,9 +47,9 @@ PluginImporter:
       settings:
         CPU: None
     iOS:
-      enabled: 0
+      enabled: 1
       settings:
-        AddToEmbeddedBinaries: false
+        AddToEmbeddedBinaries: true
         CPU: AnyCPU
         CompileFlags: 
         FrameworkDependencies: 
