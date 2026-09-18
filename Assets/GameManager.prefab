@@ -65,6 +65,9 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
-  PlayerNbrText: {fileID: 0}
-  partyStateText: {fileID: 0}
-  MaxPlayer: 4
+  PlayerNbrUI: {fileID: 0}
+  GameStateUI: {fileID: 0}
+  GameState: Waiting For Players
+  maxPlayer: 4
+  synchronizedPlayerCount: 0
+  cardToDeal: 0

@@ -1,0 +1,51 @@
+# Compile le projet Xcode exporté par Unity en .ipa non signé (à signer ensuite avec Sideloadly).
+# Le projet Xcode n'est pas dans le dépôt : il est joint en "Taotl-ios-xcode.zip" à une release brouillon.
+name: Build iOS
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write # nécessaire pour voir les releases brouillon
+
+jobs:
+  ipa:
+    runs-on: macos-15
+    steps:
+      - name: Télécharger le projet Xcode (release brouillon la plus récente)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ASSET_ID=$(gh api "repos/${{ github.repository }}/releases" \
+            --jq '[.[] | .assets[] | select(.name == "Taotl-ios-xcode.zip")][0].id')
+          if [ -z "$ASSET_ID" ] || [ "$ASSET_ID" = "null" ]; then
+            echo "::error::Aucune release ne contient Taotl-ios-xcode.zip"; exit 1
+          fi
+          gh api -H "Accept: application/octet-stream" \
+            "repos/${{ github.repository }}/releases/assets/$ASSET_ID" > xcode.zip
+          unzip -q xcode.zip -d xcode
+
+      - name: Rendre les scripts exécutables (perdu par le zip Windows)
+        run: find xcode -type f \( -name "*.sh" -o -path "*/IL2CPP/build/*" \) -exec chmod +x {} +
+
+      - name: Compiler (sans signature)
+        run: |
+          PROJECT=$(find xcode -maxdepth 3 -name "Unity-iPhone.xcodeproj" | head -1)
+          if [ -z "$PROJECT" ]; then echo "::error::Unity-iPhone.xcodeproj introuvable dans le zip"; exit 1; fi
+          xcodebuild -project "$PROJECT" -scheme Unity-iPhone -configuration Release \
+            -sdk iphoneos -destination "generic/platform=iOS" \
+            -archivePath "$RUNNER_TEMP/Taotl.xcarchive" archive \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" DEVELOPMENT_TEAM="" \
+            > build.log 2>&1 || { tail -150 build.log; exit 1; }
+
+      - name: Emballer en .ipa
+        run: |
+          mkdir Payload
+          cp -R "$RUNNER_TEMP"/Taotl.xcarchive/Products/Applications/*.app Payload/
+          zip -qry Taotl.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Taotl-ipa
+          path: Taotl.ipa
+          retention-days: 3

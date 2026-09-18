@@ -15,4 +15,5 @@ MonoBehaviour:
   cardName: Dieu Noir
   cardVisual: {fileID: 1925807960130254831, guid: 2e873cd4a0cc3c041ba9ca285ea0112f, type: 3}
   value: 112
-  suit: Atout
+  suit: Noir
+  chipeltVersion: {fileID: 11400000, guid: fa4b7188320f4b74a997dcd4345a1474, type: 2}

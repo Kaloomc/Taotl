@@ -68,6 +68,33 @@ public class PartyManager : NetworkBehaviour
 
             if (playerReady == synchronizedPlayerCount)
             {
+                // Le donneur est le joueur juste avant celui qui démarre (firstPlayerId), pas celui qui démarre
+                int dealerId = (firstPlayerId - 1 + synchronizedPlayerCount) % synchronizedPlayerCount;
+
+                int bidSum = 0;
+                Player dealer = null;
+                foreach (NetworkConnectionToClient conn in NetworkServer.connections.Values)
+                {
+                    if (conn.identity != null && conn.identity.TryGetComponent<Player>(out Player p))
+                    {
+                        bidSum += p.bid;
+                        if (p.id == dealerId) dealer = p;
+                    }
+                }
+
+                // La somme des mises ne peut pas être égale au nombre de cartes : le donneur doit changer sa mise
+                if (dealer != null && bidSum == cardToDeal)
+                {
+                    // On cache le bidUI des autres (ils ont fini d'enchérir) sans le réactiver : seul le donneur agit encore
+                    foreach (NetworkConnectionToClient conn in NetworkServer.connections.Values)
+                    {
+                        if (conn.identity != null && conn.identity.TryGetComponent<Player>(out Player p) && p.id != dealerId)
+                            p.disableBidUI();
+                    }
+                    dealer.ForceRebid();
+                    return;
+                }
+
                 foreach (NetworkConnectionToClient conn in NetworkServer.connections.Values)
                 {
                     if (conn.identity != null && conn.identity.TryGetComponent<Player>(out Player playerScript))
@@ -86,8 +113,7 @@ public class PartyManager : NetworkBehaviour
     [Server]
     public void StartGame()
     {
-        // 1ère manche : joueur au hasard, ensuite le suivant à chaque manche
-        firstPlayerId = firstPlayerId < 0 ? Random.Range(0, synchronizedPlayerCount) : (firstPlayerId + 1) % synchronizedPlayerCount;
+        // firstPlayerId est déjà choisi par DistributeCards() au début de la manche
         TableManager.instance.currentPlayerTurnId = firstPlayerId;
         TableManager.instance.suit = "";
         foreach (NetworkConnectionToClient conn in NetworkServer.connections.Values)
@@ -130,6 +156,9 @@ public class PartyManager : NetworkBehaviour
     [Server]
     public void DistributeCards()
     {
+        // 1ère manche : joueur au hasard, ensuite le suivant à chaque manche (le "donneur")
+        firstPlayerId = firstPlayerId < 0 ? Random.Range(0, synchronizedPlayerCount) : (firstPlayerId + 1) % synchronizedPlayerCount;
+
         if (!AtMaxCards)
             cardToDeal += 2;
         CreateAndShuffleDeck();

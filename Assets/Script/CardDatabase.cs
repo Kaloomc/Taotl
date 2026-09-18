@@ -20,4 +20,6 @@ public class CardDatabase : MonoBehaviour
         
         return null;
     }
+
+    public int GetIdByCard(CardData card) => card == null ? -1 : allCards.IndexOf(card);
 }

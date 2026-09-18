@@ -171,11 +171,16 @@ MonoBehaviour:
   syncInterval: 0
   currentPlayerTurnId: 0
   suit: 
-  tableRadius: 1
-  startRadius: 10
+  seatCenter: {x: 0, y: 0.4}
+  seatRadius: {x: 6.8, y: 3.2}
+  seatArc: 220
+  localSeat: {x: -3.3, y: -1.7}
+  trickCenter: {x: 0, y: 0}
+  trickRadius: {x: 1.5, y: 0.8}
+  tableCardScale: 0.9
+  startRadius: 20
   tweenDuration: 0.5
-  yOffset: 1
-  xMultiplier: 1.5
+  roundEndDelay: 3
 --- !u!4 &78886525
 Transform:
   m_ObjectHideFlags: 0
@@ -431,6 +436,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9e804fc1a9346a94fbd040f17a9f05f5, type: 2}
   - {fileID: 11400000, guid: 1248c7d7e7362394b84175df78d241b3, type: 2}
   - {fileID: 11400000, guid: 86a841296ace66f4db6bc28057ca7025, type: 2}
+  - {fileID: 11400000, guid: fa4b7188320f4b74a997dcd4345a1474, type: 2}
+  - {fileID: 11400000, guid: 190afddd0f488994f9ab67a79c375ec6, type: 2}
+  - {fileID: 11400000, guid: 4408913dd0ae7204dbe54868d90bec92, type: 2}
 --- !u!4 &205798468
 Transform:
   m_ObjectHideFlags: 0
@@ -872,9 +880,9 @@ MonoBehaviour:
   m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -1020,7 +1028,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1299545791
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1213,8 +1221,8 @@ RectTransform:
   m_GameObject: {fileID: 2054784740}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1.6450001, y: 1.6450001, z: 1.6450001}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 668646380}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1243,9 +1251,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -6818421181295498398, guid: 8508a8bf9db7f534ca78999b4cca6eba, type: 3}
+  m_Sprite: {fileID: 867768558653682155, guid: 64ca1ca48fd7050408aed5b353fdf67e, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1

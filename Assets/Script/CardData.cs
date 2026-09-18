@@ -7,4 +7,7 @@ public class CardData : ScriptableObject
     public Sprite cardVisual;
     public int value;
     public string suit;
+
+    // Dieux uniquement : la carte à poser quand le joueur choisit de la jouer en chipelt
+    public CardData chipeltVersion;
 }

@@ -1,5 +1,7 @@
 using UnityEngine;
 using Mirror;
+using TMPro;
+using EpicTransport;
 
 public class LobbyUIManager : MonoBehaviour
 {
@@ -8,6 +10,7 @@ public class LobbyUIManager : MonoBehaviour
     [Header("UI References")]
     public Transform playerListContainer; // Glisse ici ton 'Panel'
     public GameObject startGameButton;     // Ton bouton "Lancer la partie"
+    public TMP_Text roomCodeText;          // Affiche le code à partager aux amis
 
     private void Awake()
     {
@@ -20,6 +23,11 @@ public class LobbyUIManager : MonoBehaviour
         if (startGameButton != null)
         {
             startGameButton.SetActive(NetworkServer.active);
+        }
+
+        if (roomCodeText != null && EOSTransport.ConnectedToLobby)
+        {
+            roomCodeText.text = "Code : " + EOSTransport.ConnectedLobbyInfo.LobbyId;
         }
     }
 

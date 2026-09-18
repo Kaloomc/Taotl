@@ -51,7 +51,10 @@ public class Card : MonoBehaviour
             // Plus aucune carte jouable jusqu'au prochain YourTurn : évite d'envoyer des coups hors tour
             foreach (Card card in localPlayer.GetComponentsInChildren<Card>())
                 card.Playable = false;
-            localPlayer.playCard(this.cardID);
+
+            // Un dieu peut être joué en dieu ou en chipelt : on demande d'abord au joueur
+            if (Player.IsGod(suit)) localPlayer.AskGodOrChipelt(this.cardID);
+            else localPlayer.playCard(this.cardID, false);
         }
 
     }

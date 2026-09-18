@@ -15,4 +15,5 @@ MonoBehaviour:
   cardName: Dieu Rouge
   cardVisual: {fileID: -2862385124742166304, guid: 276b7f35d803d8d46b252c12f1d018f5, type: 3}
   value: 113
-  suit: Atout
+  suit: Rouge
+  chipeltVersion: {fileID: 11400000, guid: 190afddd0f488994f9ab67a79c375ec6, type: 2}

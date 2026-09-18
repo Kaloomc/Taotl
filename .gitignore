@@ -71,6 +71,18 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
-# Build WebGL
+# Builds WebGL, Linux, iOS
 /[Ww]ed[Bb]uild/
+/[Ll]inux[Bb]uild/
+/i[Oo][Ss][Bb]uild/
+*.ipa
+Taotl-ios-xcode.zip
 *.slnx
+
+# Identifiants Epic Online Services (secrets, ne jamais committer) — copie EosCredentials.cs.example
+/Assets/Script/EosCredentials.cs
+/Assets/Script/EosCredentials.cs.meta
+
+# Exports et archives de build (trop lourds pour GitHub)
+/Nouveau dossier/
+*.zip

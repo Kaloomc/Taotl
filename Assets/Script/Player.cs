@@ -1,10 +1,10 @@
 using UnityEngine;
 using Mirror;
+using UnityEngine.UI;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Mathematics;
 using DG.Tweening;
-using UnityEngine.UIElements;
 
 public class Player : NetworkBehaviour
 {
@@ -12,6 +12,7 @@ public class Player : NetworkBehaviour
     public List<int> myHand = new List<int>();
     public GameObject CardPrefab;
     public float cardOffset = 0.8f;
+    public float maxHandWidth = 9f; // largeur max de la main (unités monde), le pseudo local est juste à côté
 
     [SyncVar (hook = nameof(OnPseudoChanged))] 
     public string Pseudo = "Player";
@@ -21,8 +22,23 @@ public class Player : NetworkBehaviour
 
     [SyncVar] public int bid;
     [SyncVar] public bool bidLocked;
+
+    public Sprite bidLockSprite;
+    public Sprite bidUnLockSprite;
+    public Image lockUI;
+
     public GameObject bidUI;
     public TextMeshProUGUI bidText;
+
+    // UI affichée uniquement au donneur quand la somme des mises tombe pile sur le nombre de cartes
+    public GameObject ajustBidUI;
+    public TextMeshProUGUI ajustBidText;
+    bool forcedRebid; // serveur uniquement : vrai tant que le donneur n'a pas changé sa mise
+    int forbiddenBid; // serveur uniquement : la mise qu'il n'a pas le droit de reprendre
+
+    // UI de choix quand on clique sur un dieu : le jouer en dieu ou en chipelt
+    public GameObject chooseGodUI;
+    int pendingGodCardId = -1;
 
     [SyncVar] public int tricksWon;
     [SyncVar (hook = nameof(OnScoreChanged))]
@@ -77,9 +93,7 @@ public class Player : NetworkBehaviour
         int totalPlayers = FindAnyObjectByType<PartyManager>().synchronizedPlayerCount;
         int myLocalSeat = NetworkClient.localPlayer.GetComponent<Player>().id;
 
-        Vector3 circularPos = TableManager.GetRelativeCircularPosition(id, myLocalSeat, totalPlayers, 5f, -18f, 1.5f, 0.7f);
-    
-        transform.position = circularPos + new Vector3(0, TableManager.instance.yOffset, 0);
+        transform.position = TableManager.instance.SeatPosition(id, myLocalSeat, totalPlayers);
     }
 
     [TargetRpc]
@@ -100,6 +114,8 @@ public class Player : NetworkBehaviour
         bid = 0;
         changeBid(0);
         bidUI.SetActive(true);
+        ajustBidUI.SetActive(false);
+        chooseGodUI.SetActive(false);
 
         SortHand();
     }
@@ -126,13 +142,15 @@ public class Player : NetworkBehaviour
         float y = -5f;
         float z = 0f;
 
-        float totalWidth = (cards.Count - 1) * cardOffset;
+        // Les cartes se chevauchent davantage plutôt que de sortir de l'écran (jusqu'à 36 cartes à 2 joueurs)
+        float offset = cards.Count > 1 ? Mathf.Min(cardOffset, maxHandWidth / (cards.Count - 1)) : 0f;
+        float totalWidth = (cards.Count - 1) * offset;
         float startX = -totalWidth / 2f;
 
         // 2. On positionne
         for (int i = 0; i < cards.Count; i++)
         {
-            float posX = startX + (i * cardOffset);
+            float posX = startX + (i * offset);
             Vector3 targetPos = new Vector3(posX, y, z);
             cards[i].transform.DOKill();
     
@@ -146,14 +164,17 @@ public class Player : NetworkBehaviour
 
     public void changeBid(int change)
     {
+        if(bidLocked) return;
         bid += change;
         bid = math.clamp(bid,0,myHand.Count);
         bidText.text = bid.ToString();
+        if (ajustBidText != null) ajustBidText.text = bid.ToString();
     }
 
     public void lockBid()
     {
         bidLocked = !bidLocked;
+        lockUI.sprite = bidLocked ? bidLockSprite : bidUnLockSprite;
         CmdLockBid(bid, bidLocked);
     }
 
@@ -172,8 +193,52 @@ public class Player : NetworkBehaviour
         bidUI.SetActive(false);
     }
 
+    // Appelé par PartyManager quand la somme des mises == nombre de cartes : ce joueur (le donneur) doit changer sa mise
+    [Server]
+    public void ForceRebid()
+    {
+        forcedRebid = true;
+        forbiddenBid = bid;
+        bidLocked = false;
+        TargetShowAjustBidUI();
+    }
+
+    [TargetRpc]
+    void TargetShowAjustBidUI()
+    {
+        bidUI.SetActive(false);
+        ajustBidUI.SetActive(true);
+    }
+
+    // Boutons + / - de l'AjustBidUi : un seul cran, validé dès le clic (pas de bouton Lock)
+    public void ajustBidBy(int delta)
+    {
+        CmdAjustBid(delta);
+    }
+
     [Command]
-    public void playCard(int cardId)
+    public void CmdAjustBid(int delta)
+    {
+        if (FindAnyObjectByType<PartyManager>().GameState != PartyManager.Bidding) return;
+        if (!forcedRebid) return;
+
+        int newBid = math.clamp(bid + delta, 0, myHand.Count);
+        if (newBid == forbiddenBid) return; // seul coup qui redonnerait la mise interdite (borne 0 ou main pleine) : on ignore le clic
+
+        bid = newBid;
+        bidLocked = true;
+        forcedRebid = false;
+        TargetHideAjustBidUI();
+    }
+
+    [TargetRpc]
+    void TargetHideAjustBidUI()
+    {
+        ajustBidUI.SetActive(false);
+    }
+
+    [Command]
+    public void playCard(int cardId, bool asChipelt)
     {
          // 1. Est-ce le tour de ce joueur ?
         if (!TableManager.instance.IsItPlayersTurn(id)) return;
@@ -181,18 +246,54 @@ public class Player : NetworkBehaviour
         // 2. Le joueur possède-t-il vraiment cette carte ?
         if (!myHand.Contains(cardId)) return;
 
-        // 3. La carte respecte-t-elle la règle de couleur ?
+        // 3. Seuls les dieux peuvent être joués en chipelt
+        CardData data = CardDatabase.instance.GetCardByID(cardId);
+        if (asChipelt && !IsGod(data.suit)) return;
+
+        // 4. La carte respecte-t-elle la règle de couleur ?
         string currentSuit = TableManager.instance.suit;
-        string cardSuit = CardDatabase.instance.GetCardByID(cardId).suit;
-        bool haveSuit = myHand.Exists(handId => CardDatabase.instance.GetCardByID(handId).suit == currentSuit);
+        string cardSuit = asChipelt ? "Chipelt" : data.suit;
+        bool haveSuit = myHand.Exists(handId => MatchesSuit(CardDatabase.instance.GetCardByID(handId).suit, currentSuit));
         if (!CanPlayCard(cardSuit, currentSuit, haveSuit)) return;
 
         // Si tout est OK :
         myHand.Remove(cardId); // On retire de la main sur le serveur
-        TableManager.instance.AddCardToTable(cardId, id); // On pose sur la table
-        
+
+        // Joué en chipelt : on pose la version chipelt pour que tout le monde voie le choix
+        int tableCardId = cardId;
+        if (asChipelt)
+        {
+            tableCardId = CardDatabase.instance.GetIdByCard(data.chipeltVersion);
+            // Sans elle le dieu serait posé tel quel et remporterait le pli : on refuse plutôt que de fausser la règle
+            if (tableCardId < 0)
+            {
+                Debug.LogError($"{data.cardName} : chipeltVersion non assignée, ou absente de CardDatabase.allCards");
+                return;
+            }
+        }
+        TableManager.instance.AddCardToTable(tableCardId, id); // On pose sur la table
+
         // On informe le client qu'il doit supprimer la carte visuellement
         TargetRemoveCardFromHand(cardId);
+    }
+
+    // Appelé quand le joueur clique sur un dieu : il doit d'abord choisir comment le jouer
+    public void AskGodOrChipelt(int cardId)
+    {
+        pendingGodCardId = cardId;
+        chooseGodUI.SetActive(true);
+    }
+
+    public void PlayAsGod() => PlayPendingGod(false);      // bouton "Dieu"
+    public void PlayAsChipelt() => PlayPendingGod(true);   // bouton "Chipetl"
+
+    void PlayPendingGod(bool asChipelt)
+    {
+        if (pendingGodCardId < 0) return;
+
+        chooseGodUI.SetActive(false);
+        playCard(pendingGodCardId, asChipelt);
+        pendingGodCardId = -1;
     }
 
     [TargetRpc]
@@ -230,7 +331,7 @@ public class Player : NetworkBehaviour
         bool haveSuit = false;
         foreach (Card card in cards)
         {
-            if (card.suit == currentSuit)
+            if (MatchesSuit(card.suit, currentSuit))
                 haveSuit = true;
         }
 
@@ -249,10 +350,21 @@ public class Player : NetworkBehaviour
         }
     }
 
+    public static bool IsGod(string cardSuit) => cardSuit == "Noir" || cardSuit == "Rouge" || cardSuit == "Taotl";
+
+    // "Rouge"/"Noir" sont demandés par les dieux : n'importe quelle carte de cette couleur convient
+    public static bool MatchesSuit(string cardSuit, string currentSuit)
+    {
+        if (currentSuit == "Rouge") return cardSuit == "Coeur" || cardSuit == "Carreau";
+        if (currentSuit == "Noir") return cardSuit == "Pique" || cardSuit == "Trefle";
+        return cardSuit == currentSuit;
+    }
+
     public static bool CanPlayCard(string cardSuit, string currentSuit, bool haveCurrentSuit)
     {
-        bool isAlwaysPlayable = cardSuit == "Atout" || cardSuit == "Chipelt";
-        return currentSuit == "" || !haveCurrentSuit || cardSuit == currentSuit || isAlwaysPlayable;
+        // Seuls le chipelt et les dieux échappent à l'obligation de fournir la couleur (l'atout non)
+        bool isAlwaysPlayable = cardSuit == "Chipelt" || IsGod(cardSuit);
+        return currentSuit == "" || !haveCurrentSuit || isAlwaysPlayable || MatchesSuit(cardSuit, currentSuit);
     }
 
 

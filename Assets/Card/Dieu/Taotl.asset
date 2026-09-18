@@ -15,4 +15,5 @@ MonoBehaviour:
   cardName: Taotl
   cardVisual: {fileID: -4329255953136627784, guid: fa53b069995390643a071ceb5904ae65, type: 3}
   value: 1000
-  suit: Atout
+  suit: Taotl
+  chipeltVersion: {fileID: 11400000, guid: 4408913dd0ae7204dbe54868d90bec92, type: 2}
